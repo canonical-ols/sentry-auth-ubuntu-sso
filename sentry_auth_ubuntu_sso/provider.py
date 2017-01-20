@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import logging
 from uuid import uuid4
 
+from django.utils.translation import ugettext_lazy as _
 from django_openid_auth.views import login_begin, login_complete
 from sentry.auth import AuthView, Provider
 from sentry.web.frontend.auth_provider_login import AuthProviderLoginView
@@ -22,8 +23,12 @@ class OpenIDLoginBegin(AuthView):
 class OpenIDLoginComplete(AuthView):
 
     def dispatch(self, request, helper):
-        login_complete(request)
-        return helper.next_step()
+        response = login_complete(request)
+        if response.status_code == 302:
+            return helper.next_step()
+        else:
+            msg = _('OpenID login failed')
+            return helper.error(msg)
 
 
 class BindUser(AuthView):
