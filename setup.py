@@ -10,12 +10,12 @@ from setuptools import setup, find_packages
 
 install_requires = [
     'sentry>=7.0.0',
-    'django-openid-auth==0.7',
+    'django-openid-auth==0.13',
 ]
 
 setup(
     name='sentry-auth-ubuntu-sso',
-    version='0.1.0',
+    version='0.1.1',
     author='Ricardo Kirkner',
     author_email='online-services@lists.canonical.com',
     url='http://www.canonical.com',
