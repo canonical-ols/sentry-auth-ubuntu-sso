@@ -6,7 +6,11 @@ from uuid import uuid4
 from django.utils.translation import ugettext_lazy as _
 from django_openid_auth.views import login_begin, login_complete
 from sentry.auth import AuthView, Provider
+from sentry.models import OrganizationMember
 from sentry.web.frontend.auth_provider_login import AuthProviderLoginView
+
+
+ROLE_MANAGER = 'manager'
 
 
 class OpenIDLoginBegin(AuthView):
@@ -35,6 +39,16 @@ class BindUser(AuthView):
 
     def dispatch(self, request, helper):
         helper.bind_state('user', request.user)
+        return helper.next_step()
+
+
+class UpdateRole(AuthView):
+
+    def dispatch(self, request, helper):
+        user = helper.fetch_state('user')
+        if user.is_staff:
+            memberships = OrganizationMember.objects.filter(user=user)
+            memberships.update(role=ROLE_MANAGER)
         return helper.next_step()
 
 
@@ -71,11 +85,13 @@ class UbuntuSSOProvider(Provider):
             OpenIDLoginBegin(),
             OpenIDLoginComplete(),
             BindUser(),
+            UpdateRole(),
         ]
 
     def get_setup_pipeline(self):
         return [
             BindUser(),
+            UpdateRole(),
         ]
 
     def build_identity(self, state):
