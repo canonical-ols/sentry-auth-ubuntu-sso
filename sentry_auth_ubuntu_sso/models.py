@@ -10,4 +10,5 @@ class UserGroup(models.Model):
     group = models.ForeignKey(Group)
 
     def __repr__(self):
-        return '<UserGroup: user={}, group={}>'.format(user=user, group=group)
+        return '<UserGroup: user={}, group={}>'.format(
+            self.user, self.group)
