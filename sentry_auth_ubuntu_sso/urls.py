@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from django.conf.urls import *
+from django.conf.urls import *  # noqa
 from django.views.decorators.csrf import csrf_exempt
 from sentry.conf import urls
 
