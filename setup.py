@@ -15,7 +15,7 @@ install_requires = [
 
 setup(
     name='sentry-auth-ubuntu-sso',
-    version='0.1.1',
+    version='0.1.2',
     author='Ricardo Kirkner',
     author_email='online-services@lists.canonical.com',
     url='http://www.canonical.com',
