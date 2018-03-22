@@ -2,14 +2,17 @@ from __future__ import absolute_import
 
 from uuid import uuid4
 
+from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from django_openid_auth.views import login_begin, login_complete
 from sentry.auth import AuthView, Provider
+from sentry.auth.exceptions import IdentityNotValid
 from sentry.models import OrganizationMember
 from sentry.web.frontend.auth_provider_login import AuthProviderLoginView
 
 
 ROLE_MANAGER = 'manager'
+User = get_user_model()
 
 
 class OpenIDLoginBegin(AuthView):
@@ -37,14 +40,20 @@ class OpenIDLoginComplete(AuthView):
 class BindUser(AuthView):
 
     def dispatch(self, request, helper):
-        helper.bind_state('user', request.user)
+        helper.bind_state('user_id', request.user.id)
         return helper.next_step()
 
 
 class UpdateRole(AuthView):
 
     def dispatch(self, request, helper):
-        user = helper.fetch_state('user')
+        user_id = helper.fetch_state('user_id')
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            msg = _('User not found')
+            return helper.error(msg)
+
         if user.is_staff:
             memberships = OrganizationMember.objects.filter(user=user)
             memberships.update(role=ROLE_MANAGER)
@@ -94,7 +103,12 @@ class UbuntuSSOProvider(Provider):
         ]
 
     def build_identity(self, state):
-        user = state.get('user')
+        user_id = state.get('user_id')
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            raise IdentityNotValid
+
         return {
             'name': user.get_full_name(),
             'id': user.id,
